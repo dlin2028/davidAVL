@@ -43,9 +43,19 @@ namespace DavidAVL
             if(newChild.Parent == LeftNode)
             {
                 LeftNode = newChild;
+                return;
             }
             RightNode = newChild;
         }
 
+        public void RemoveChild(TreeNode<T> child)
+        {
+            if (child == LeftNode)
+            {
+                LeftNode = null;
+                return;
+            }
+            RightNode = null;
+        }
     }
 }

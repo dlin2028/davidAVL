@@ -8,67 +8,60 @@ namespace DavidAVL
 {
     class DavidTree <T> where T : IComparable
     {
-        private TreeNode<T> top;
         public int Count;
-        
+
+        private int currentHeight = 1;
+        private TreeNode<T> top;
 
         public DavidTree()
         {
 
         }
+
         public void RotateRight(TreeNode<T> middleNode)
         {
-            //settings parent's leftnode to rightnode
-            if(middleNode.RightNode != null)
-            {
-                middleNode.Parent.LeftNode = middleNode.RightNode;
-            }
-            //setting parent parent to middlenode
-            TreeNode<T> originalParent = middleNode.Parent;
-            middleNode.Parent.Parent = middleNode;
-
-            //setting parent for middlenode
-            middleNode.Parent = originalParent.Parent;
-            //settings the new parent's child
-            originalParent.Parent.SetChild(middleNode);
-            //changing the parent to the right child
+            TreeNode<T> oldRightNode = middleNode.RightNode;
             middleNode.RightNode = middleNode.Parent;
-        }
+            middleNode.Parent = middleNode.RightNode.Parent;
 
+            if (middleNode.Parent == null)
+            {
+                top = middleNode;
+            }
+
+            middleNode.RightNode.Parent = middleNode;
+            middleNode.RightNode.LeftNode = oldRightNode;
+        }
+        
         //literally copy pasted rotateRight and changed right to left and vice versa
         public void RotateLeft(TreeNode<T> middleNode)
         {
-            if (middleNode.LeftNode != null)
-            {
-                middleNode.Parent.RightNode = middleNode.LeftNode;
-            }
-            TreeNode<T> originalParent = middleNode.Parent;
-            
-            if(middleNode.Parent.Parent != null)
-            {
-                middleNode.Parent.Parent = middleNode;
-            }
-
-            middleNode.Parent = originalParent.Parent;
-
-            originalParent.Parent.SetChild(middleNode);
-
+            TreeNode<T> oldLeftNode = middleNode.LeftNode;
             middleNode.LeftNode = middleNode.Parent;
-        }
+            middleNode.Parent = middleNode.LeftNode.Parent;
 
-        int currentHeight = 1;
+            if (middleNode.Parent == null)
+            {
+                top = middleNode;
+            }
+
+            middleNode.LeftNode.Parent = middleNode;
+            middleNode.LeftNode.RightNode = oldLeftNode;
+        }
+        
         public void Insert(T item)
         {
             insert(item, top);
         }
+
         private bool insert(T item, TreeNode<T> currentNode)
         {
-            //search through tree
             if(currentNode == null)
             {
                 if(top == null)
                 {
                     top = new TreeNode<T>(item);
+                    return false;
                 }
                 currentHeight = 1;
                 return true;
@@ -77,7 +70,8 @@ namespace DavidAVL
             {
                 if(insert(item, currentNode.LeftNode))
                 {
-                    currentNode.LeftNode = new TreeNode<T>(item);                    
+                    currentNode.LeftNode = new TreeNode<T>(item);
+                    currentNode.LeftNode.Parent = currentNode;
                 }
             }
             else
@@ -85,6 +79,7 @@ namespace DavidAVL
                 if (insert(item, currentNode.RightNode))
                 {
                     currentNode.RightNode = new TreeNode<T>(item);
+                    currentNode.RightNode.Parent = currentNode;
                 }
             }
 
@@ -94,21 +89,50 @@ namespace DavidAVL
             //rebalance tree
             if(currentNode.Balance > 1)
             {
-                RotateRight(currentNode.RightNode);
+                RotateLeft(currentNode.RightNode);
             }
             else if(currentNode.Balance < -1)
             {
-                RotateLeft(currentNode.LeftNode);
+                RotateRight(currentNode.LeftNode);
             }
             return false;
         }
-        //help please
-        public void Delete()
+        
+        //ezezezezz
+        public void Delete(T key)
         {
-            //binary search
-            //delete node
-            //rebalance tree (balance n stuff)
-            //set node height
+            TreeNode<T> foundNode = Search(key);
+
+            foundNode.Parent.RemoveChild(foundNode);
+
+            BalanceTree();
+        }
+
+        public void BalanceTree()
+        {
+            currentHeight = 0;
+            balanceTree(top);
+        }
+        private void balanceTree(TreeNode<T> currentNode)
+        {
+            if(currentNode == null)
+            {
+                return;
+            }
+
+            balanceTree(currentNode.LeftNode);
+            balanceTree(currentNode.RightNode);
+
+            currentNode.Height = ++currentHeight;
+            if (currentNode.Balance > 1)
+            {
+                RotateLeft(currentNode.RightNode);
+            }
+            else if (currentNode.Balance < -1)
+            {
+                RotateRight(currentNode.LeftNode);
+            }
+
         }
 
         //--------------------------------------
@@ -117,6 +141,7 @@ namespace DavidAVL
         {
             return search(key, top);
         }
+
         private TreeNode<T> search(T key, TreeNode<T> currentNode)
         {
             if (currentNode == null)
@@ -143,6 +168,7 @@ namespace DavidAVL
         {
             preOrder(top);
         }
+
         private void preOrder(TreeNode<T> currentNode)
         {
             if (currentNode == null)
@@ -154,11 +180,11 @@ namespace DavidAVL
             preOrder(currentNode.RightNode);
         }
 
-
         public void PostOrder()
         {
             postOrder(top);
         }
+
         private void postOrder(TreeNode<T> currentNode)
         {
             if (currentNode == null)
@@ -170,12 +196,12 @@ namespace DavidAVL
 
             Console.WriteLine(currentNode.Item);
         }
-
-
+        
         public void InOrder()
         {
             inOrder(top);
         }
+
         private void inOrder(TreeNode<T> currentNode)
         {
             if (currentNode == null)
@@ -186,8 +212,5 @@ namespace DavidAVL
             Console.WriteLine(currentNode.Item);
             inOrder(currentNode.RightNode);
         }
-
-
-
     }
 }
